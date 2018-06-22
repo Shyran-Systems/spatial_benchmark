@@ -147,7 +147,9 @@ for(my $d = 1; $d <= 7; $d+=0.3){
 
   $qr->finish();
 
-  my $time = $h[0]->{'Total Runtime'};
+  my $planning_time = $h[0]->{'Planning Time'};
+  my $execution_time = $h[0]->{'Execution Time'};
+  my $time = $planning_time + $execution_time;
   my $blks_read = $h[0]->{'Plan'}->{'Shared Read Blocks'};
   my $blks_hit = $h[0]->{'Plan'}->{'Shared Hit Blocks'};
   my $ntuples = $h[0]->{'Plan'}->{'Plans'}[0]->{'Actual Rows'};
