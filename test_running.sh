@@ -9,31 +9,17 @@ for ((i=0; i<${#nchunks[@]}; i++)) do
 
 dropdb test_q3c
 createdb test_q3c
-psql test_q3c < `pg_config --sharedir`/contrib/q3c.sql >/dev/null 2>/dev/null
+echo 'CREATE EXTENSION q3c;' | psql test_q3c
 psql test_q3c < test_running.q3c.sql >/dev/null 2>/dev/null
 echo "q3c" ${nchunks[$i]} ${chunksize[$i]}
 ./test_running.pl -d test_q3c -t q3c -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_q3c_c_${nchunks[$i]}_${chunksize[$i]}
 
 dropdb test_pg
 createdb test_pg
-psql test_pg < `pg_config --sharedir`/contrib/pg_sphere.sql >/dev/null 2>/dev/null
+echo 'CREATE EXTENSION pg_sphere;' | psql test_pg
 psql test_pg < test_running.pg.sql >/dev/null 2>/dev/null
 echo "pg" ${nchunks[$i]} ${chunksize[$i]}
 ./test_running.pl -d test_pg -t pg -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_pg_c_${nchunks[$i]}_${chunksize[$i]}
-
-dropdb test_pg112
-createdb test_pg112
-psql test_pg112 < `pg_config --sharedir`/contrib/pg_sphere_112.sql >/dev/null 2>/dev/null
-psql test_pg112 < test_running.pg.sql >/dev/null 2>/dev/null
-echo "pg112" ${nchunks[$i]} ${chunksize[$i]}
-./test_running.pl -d test_pg112 -t pg -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_pg112_c_${nchunks[$i]}_${chunksize[$i]}
-
-dropdb test_pg115
-createdb test_pg115
-psql test_pg115 < `pg_config --sharedir`/contrib/pg_sphere_115.sql >/dev/null 2>/dev/null
-psql test_pg115 < test_running.pg3.sql >/dev/null 2>/dev/null
-echo "pg114" ${nchunks[$i]} ${chunksize[$i]}
-./test_running.pl -d test_pg115 -t pg -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_pg115_c_${nchunks[$i]}_${chunksize[$i]}
 
 dropdb test_haversine
 createdb test_haversine
