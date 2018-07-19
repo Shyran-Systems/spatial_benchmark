@@ -114,7 +114,7 @@ for(my $d = 0; $d < $nqueries; $d++){
 
   my $planning_time = $h[0]->{'Planning Time'};
   my $execution_time = $h[0]->{'Execution Time'};
-  my $time = $planning_time + $execution_time;
+  my $time = $execution_time;
   my $blks_read = $h[0]->{'Plan'}->{'Shared Read Blocks'};
   my $blks_hit = $h[0]->{'Plan'}->{'Shared Hit Blocks'};
   my $ntuples = $h[0]->{'Plan'}->{'Plans'}[0]->{'Actual Rows'};
