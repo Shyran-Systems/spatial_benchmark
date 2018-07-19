@@ -29,8 +29,8 @@ echo "pg114" ${nchunks[$i]} ${chunksize[$i]}
 
 dropdb test_postgis
 createdb test_postgis
-psql test_postgis < `pg_config --sharedir`/contrib/postgis-2.1/postgis.sql >/dev/null 2>/dev/null
-psql test_postgis < `pg_config --sharedir`/contrib/postgis-2.1/spatial_ref_sys.sql
+psql test_postgis < `pg_config --sharedir`/contrib/postgis-2.4/postgis.sql >/dev/null 2>/dev/null
+psql test_postgis < `pg_config --sharedir`/contrib/postgis-2.4/spatial_ref_sys.sql
 psql test_postgis < test_running.postgis.sql >/dev/null 2>/dev/null
 echo "postgis" ${nchunks[$i]} ${chunksize[$i]}
 ./test_running.pl -d test_postgis -t postgis -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_postgis_c_${nchunks[$i]}_${chunksize[$i]}
