@@ -29,7 +29,7 @@ dropdb test_pg
 dropdb test_haversine
 createdb test_haversine
 psql test_haversine < ${TEST_RUNNING}.haversine.sql >/dev/null 2>/dev/null
-echo "pg114" ${nchunks[$i]} ${chunksize[$i]}
+echo "haversine" ${nchunks[$i]} ${chunksize[$i]}
 ./test_running.pl -d test_haversine -t haversine -n ${nchunks[$i]} -c ${chunksize[$i]} > out_run_haversine_c_${nchunks[$i]}_${chunksize[$i]}
 dropdb test_haversine
 
