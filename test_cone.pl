@@ -47,6 +47,29 @@ print STDERR "db=".$db." at port ".$port.", index=".$type.",  Nqueries=".$nqueri
 my $dbh = DBI->connect("dbi:Pg:dbname=$db host=localhost port=$port");
 $dbh->{pg_server_prepare} = 0;
 
+sub prepare($) {
+  my ($type) = @_;
+
+  my $d = 1000;
+  my $chunk = 100000;
+  my $q = "";
+  my $start = 0;
+  my $end = ($d+1)*$chunk - 1;
+
+  if ($type eq 'pg') {
+    $q = "INSERT INTO test_pgsphere (id, point) (SELECT generate_series($start,$end), spoint(random()*2*pi(), (random()-0.5)*pi()));";
+  } elsif ($type eq 'q3c') {
+    $q = "INSERT INTO test_q3c (id, ra, dec) (SELECT generate_series($start,$end), random()*360, (random()-0.5)*180);"
+  } elsif ($type eq 'haversine') {
+    $q = "INSERT INTO test_haversine (id, ra, dec) (SELECT generate_series($start,$end), random()*360, (random()-0.5)*180);"
+  } elsif ($type eq 'postgis') {
+    $q = "INSERT INTO test_postgis (id, point) (SELECT generate_series($start,$end), st_geographyfromtext(concat('POINT(', random()*360-180, ' ', (random()-0.5)*180, ')')));"
+  }
+
+  $dbh->do($q) or die "Error processing query: ".$dbh->errstr . "\n";
+  $dbh->do("VACUUM ANALYZE;") or die "Error processing vacuum analyze query: ".$dbh->errstr . "\n";
+}
+
 sub get_statio($){
   my ($type) = @_;
   my $name;
@@ -72,6 +95,8 @@ sub get_statio($){
   return @res;
 }
 
+prepare($type);
+
 for(my $d = 0; $d < $nqueries; $d++){
   my $sr0 = exp(log($min_sr) + (log($max_sr)-log($min_sr))*rand());
   my $ra0 = 360*rand();
@@ -86,21 +111,18 @@ for(my $d = 0; $d < $nqueries; $d++){
   } elsif ($type eq 'q3c') {
     $q = "SELECT count(*) FROM test_q3c WHERE q3c_radial_query(ra, dec, $ra0, $dec0, $sr0);";
   } elsif ($type eq 'haversine') {
-    $q = "SELECT count(*) from test_haversine b WHERE
+    $q = "SELECT count(*) FROM test_haversine b WHERE
  b.dec between $dec0 - $sr0 and $dec0 + $sr0 and
 (sin(radians(b.dec - $dec0)/2)^2 + cos(radians($dec0))*cos(radians(b.dec))*sin(radians(b.ra - $ra0)/2)^2
  <
  sin(radians($sr0)/2)^2);";
   } elsif ($type eq 'postgis') {
-  $q = "select count(*) from test_postgis where st_dwithin(point, st_geographyfromtext(concat('POINT(', $ra0-180, ' ', $dec0, ')')),
-                                                           ".(111195.0792*$sr0).",
-                                                           false)";
+  $q = "SELECT count(*) FROM test_postgis WHERE st_dwithin(point, st_geographyfromtext(concat('POINT(', $ra0-180, ' ', $dec0, ')')),".(111195.0792*$sr0).",false);";
 }
 
   $q = "EXPLAIN (ANALYZE ON, BUFFERS ON, FORMAT JSON) ".$q;
 
   print STDERR "$d/$nqueries sr0=$sr0 ra0=$ra0 dec0=$dec0\n";
-  #print STDERR $q."\n";
 
   my $qr = $dbh->prepare($q);
   $qr->execute() or die "Error processing query: ".$dbh->errstr . "\n";
@@ -109,8 +131,6 @@ for(my $d = 0; $d < $nqueries; $d++){
   @h = @{decode_json($json)};
 
   $qr->finish();
-
-  #  print Dumper(@h);
 
   my $planning_time = $h[0]->{'Planning Time'};
   my $execution_time = $h[0]->{'Execution Time'};
